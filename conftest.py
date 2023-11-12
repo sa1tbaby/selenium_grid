@@ -10,12 +10,15 @@ from bs4 import BeautifulSoup
 
 
 DRIVER_URL = 'http://192.168.1.157:4444/wd/hub'
+
 DRIVER_OPTION = webdriver.ChromeOptions()
+
 NODE_OPTION_chrome = {"browserName":"chrome",
                "browserVersion":"119.0",
                "platformName":"linux",
                "se:noVncPort":7900,
                "se:vncEnabled":True}
+
 NODE_OPTION_firefox = {"browserName":"firefox",
                "browserVersion":"119.0",
                "platformName":"linux",
@@ -50,12 +53,30 @@ def browser():
 brwsr = browser()
 #s.get('http://uitestingplayground.com/sampleapp')
 
+attrs = ['type',
+         'aria-expanded', 'aria-controls',
+         'data-target', 'data-toggle',
+         'type', 'aria-label', 'same']
 
 for inst in brwsr:
     page_instance = PageObject(driver=inst)
 
-    cort = 'class name', 'container'
-    page_instance.find_element_in_dom(cort, 10)
+    cort = 'class name', 'navbar-toggler'
+    cortww = 'class name', 'row'
+    twae = page_instance.find_element_in_dom(cort, 10)
+    for i in page_instance.find_elements_in_dom(cortww, 10):
+        aaadsd = i.location
+    aasd = twae.text
+    dsgsgfaf = twae.tag_name
+    for j in attrs:
+        axcxzxvc = twae.get_attribute(j)
+
+    sd =2
+
+
+
+
+    """
     html_page = page_instance.driver.page_source
     extra = {
         'element_1':{"start_counter":"<div",
@@ -80,12 +101,6 @@ for inst in brwsr:
     for i in sss:
         print(i)
 
-
-
-
-
-    """
-    
    
     qqq = get_element(ww, 'div', {'class':'row'})
 
@@ -96,3 +111,4 @@ for inst in brwsr:
             print('ok')
             break
     """
+

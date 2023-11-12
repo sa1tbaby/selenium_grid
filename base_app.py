@@ -1,13 +1,11 @@
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import Remote
-from bs4 import BeautifulSoup
-from find_func import slice_str, rslice_str
-
-
+from selenium.webdriver.remote.webelement import WebElement
 class BasePage:
     BASE_URL = 'http://uitestingplayground.com/sampleapp'
     ERROR_MESSAGE = 'WE CANT FIND THE ELEMENT '
+    START_PAGE = ''
 
     def __init__(
             self,
@@ -16,6 +14,7 @@ class BasePage:
 
         self.driver = driver
         self.go_to_base_page
+        self.update_window_handle()
 
     def find_element_in_dom(
             self,
@@ -45,6 +44,34 @@ class BasePage:
             message=self.ERROR_MESSAGE
         )
 
+    def find_element_with_compare(
+            self,
+            locator,
+            wait,
+            attributes
+    ):
+        """
+
+        :param locator:
+        :param wait:
+        :param attributes: {attr:value} element attributes which may find in html cofr
+        :return:
+        """
+
+        for element in self.find_elements_in_dom(locator, wait):
+
+            state = True
+            for key, value in attributes:
+
+                if value != element.get_attribute(key):
+                    state = False
+                    break
+
+            if not state:
+                continue
+
+            return element
+
     def wait_to_be_clickable(
             self,
             locator: tuple[str, str],
@@ -61,93 +88,54 @@ class BasePage:
 
         return self.find_element_in_dom(locator, wait)
 
-    def get_html_element(
+    def send_text(
             self,
-            page: str,
-            element_tag: str,
-            element_attr: dict
+            element: WebElement,
+            keys,
     ):
-        """
+        element.click()
+        element.send_keys(keys)
 
-        :param page: some str html page
-        :param element_tag: some tag. #"div", "li", ...
-        :param element_attr: some attribute. #{'class':'row'}, ....
-        :return:
-        """
+        return element
 
-        for element in BeautifulSoup(page, 'html.parser').find_all(element_tag, element_attr):
-            yield element
-
-
-
-
-    def get_dynamic_attr_from_html_element(
+    def click_element(
             self,
-            page: str,
-            element_tag: str,
-            element_attr: dict,
-            wait: float,
-            **extra
+            element
     ):
-        """
 
+        element.click()
 
-        :param page: some str html page
-        :param element_tag: some tag. #"div", "li", ...
-        :param element_attr: some attribute. #{'class':'row'}, ....
-        :param wait: some timeout in sec
-        :param extra: {"element_(some_name)":["start_counter":"element_tag", "end_counter": "element_tag"],..}
-            параметр используется для облегчения поиска html элементов при условии глубокой вложенности,
-            элементы должны перечисляться в глубину
-        :return:
-        """
-        element = self.get_html_element(page, element_tag, element_attr)
+        return element
 
-        while element:
-            try:
-                http_element: str = str(next(element))
+    def upload_file(
+            self,
+            element: WebElement,
+            file_path: str
+    ):
 
-            except StopIteration:
-                print('end of http element')
-                break
+        with open(file_path, 'r') as file:
+            element.send_keys(file.read())
 
-            else:
+        return element
 
-                for http_element_counters in extra.values():
+    def switch_on_another_tab(
+            self,
+            window_count,
+            wait
+    ):
 
-                    element_text = slice_str(http_element)
-                    start_counter = http_element_counters['start_counter']
-                    end_counter = http_element_counters['end_counter']
+        WebDriverWait(
+            driver=self.driver,
+            timeout=wait
+        ).until(
+            method=EC.number_of_windows_to_be(window_count),
+            message=self.ERROR_MESSAGE
+        )
 
-                    http_element = slice_str(
-                        mess=http_element,
-                        subj=start_counter
-                    )
-                    http_element = rslice_str(
-                        mess=http_element,
-                        subj=end_counter,
-                        option='rfind'
-                    )
-
-                http_element = rslice_str(
-                    mess=http_element,
-                    subj=end_counter
-                )
-
-                yield element_text, http_element
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def update_window_handle(
+            self
+    ):
+        self.START_PAGE = self.driver.current_window_handle
 
     @property
     def go_to_base_page(self):
